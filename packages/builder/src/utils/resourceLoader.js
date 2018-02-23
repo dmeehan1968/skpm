@@ -12,9 +12,24 @@ const commandResourceLoader = {
         return path.posix.join('..', 'Resources', '_webpack_resources', url)
       },
       publicPath(url) {
-        return `"file://" + context.plugin.urlForResourceNamed("${url.split(
-          '../Resources/'
-        )[1]}").path()`
+        // See https://github.com/airbnb/react-sketchapp/issues/216
+        const resource = url.split('../Resources/')[1]
+        return `((context) => {
+
+          const parts = context
+            .scriptPath
+            .split('/')
+
+          const index = parts
+            .slice(0)
+            .reverse()
+            .findIndex(part => /.sketchplugin$/i.test(part))
+
+            const root = parts.slice(0, -index).concat(['Contents', 'Resources']).join('/')
+
+            return \`file://\${root}/${resource}\`;
+
+        })(context)`
       },
     },
   },
